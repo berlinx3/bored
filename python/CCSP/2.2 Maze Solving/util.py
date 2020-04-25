@@ -71,7 +71,26 @@ class Maze:
         self._grid[self.start.row][self.start.column] = Cell.START
         self._grid[self.goal.row][self.goal.column] = Cell.GOAL
 
+class Node():
+    def __init__(self, state, parent, cost = 0.0, heuristic = 0.0):
+        self.state = state
+        self.parent = parent
+        self.cost = cost
+        self.heuristic = heuristic
 
+    def __lt__(self, other):
+        return (self.cost + self.heuristic) < (other.cost + other.heuristic)
+
+
+def node_to_path(node):
+    path = [node.state]
+    while node.parent is not None:
+        node = node.parent
+        path.append(node.state)
+    
+    path.reverse()
+    return path
+    
 if __name__ == "__main__":
     maze = Maze()
     print(maze)
