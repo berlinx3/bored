@@ -1,58 +1,40 @@
-from dataclasses import dataclass
-from utilv1 import Edge, Graph
-
-@dataclass
-class WeightedEdge(Edge):
-    weight: float
-
-    def reversed(self):
-        return WeightedEdge(self.v, self.u, self.weight)
-
-    def __lt__(self, other):
-        return self.weight < other.weight
-
-    def __str__(self):
-        return f"{self.u} {self.weight} -> {self.v}"
+from heapq import heappop, heappush
+from utilv2 import WeightedEdge, WeightedGraph, print_weighted_path
 
 
-class WeightedGraph(Graph):
-    def __init__(self, vertices):
-        self._vertices = vertices
-        self._edges = [[] for _ in vertices]
-            
-            
-    def add_edge_by_indices(self, u, v, weight):
-        edge = WeightedEdge(u, v, weight)
-        self.add_edge(edge)
 
-    def add_edge_by_vertices(self, first, second, weight):
-        u = self._vertices.index(first)
-        v = self._vertices.index(second)
-        self.add_edge_by_indices(u, v, weight)
-        
-    def neighbors_for_index_with_weights(self, index):
-        distance_tuples = []
-        for edge in self.edges_for_index(index):
-            distance_tuples.append((self.vertex_at(edge.v), edge.weight))
+"""
+Minimum Spanning tree using Jarnik's algorithm
+"""
+def mst(wg, start = 0):
+    if start > (wg.vertex_count - 1) or start < 0:
+        return None
+    
+    result = []
+    pq = []
+    visited = [False] * wg.vertex_count
 
-        return distance_tuples
+    def visit(index):
+        visited[index] = True
+        for edge in wg.edges_for_index(index):
+            if not visited[edge.v]:
+                heappush(pq, edge)
 
+    visit(start)
 
-    def __str__(self):
-        desc = ""
-        for i in range(self.vertex_count):
-            desc += f"{self.vertex_at(i)} -> {self.neighbors_for_index_with_weights(i)}\n"
-        return desc
+    while pq:
+        edge = heappop(pq)
 
-
-def print_weighted_path(wg, wp):
-    for edge in wp:
-        print(f"{wg.vertex_at(edge.u)} {edge.weight} > {wg.vertex_at(edge.v)}")
-    print(f"Total Weight: {total_weight(wp)}")
+        if visited[edge.v]:
+            continue
+        result.append(edge)
+        visit(edge.v)
+    return result
 
 
-def total_weight(wp):
-    return sum([e.weight for e in wp])
+
+
+
 
 if __name__ == "__main__":
     city_graph = WeightedGraph(["Seattle", "San Francisco", "Los Angeles", 
@@ -87,4 +69,9 @@ if __name__ == "__main__":
     city_graph.add_edge_by_vertices("New York", "Philadelphia", 81)
     city_graph.add_edge_by_vertices("Philadelphia", "Washington", 123)
 
-    print(city_graph)
+    result = mst(city_graph)
+
+    if result is None:
+        print("No solution found!")
+    else:
+        print_weighted_path(city_graph, result)

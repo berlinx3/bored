@@ -1,58 +1,61 @@
 from dataclasses import dataclass
-from utilv1 import Edge, Graph
+from utilv2 import WeightedEdge, WeightedGraph, print_weighted_path
+from heapq import heappop, heappush
 
 @dataclass
-class WeightedEdge(Edge):
-    weight: float
-
-    def reversed(self):
-        return WeightedEdge(self.v, self.u, self.weight)
+class DijkstraNode:
+    vertex: int
+    distance: float
 
     def __lt__(self, other):
-        return self.weight < other.weight
+        return self.distance < other.distance
 
-    def __str__(self):
-        return f"{self.u} {self.weight} -> {self.v}"
-
-
-class WeightedGraph(Graph):
-    def __init__(self, vertices):
-        self._vertices = vertices
-        self._edges = [[] for _ in vertices]
-            
-            
-    def add_edge_by_indices(self, u, v, weight):
-        edge = WeightedEdge(u, v, weight)
-        self.add_edge(edge)
-
-    def add_edge_by_vertices(self, first, second, weight):
-        u = self._vertices.index(first)
-        v = self._vertices.index(second)
-        self.add_edge_by_indices(u, v, weight)
-        
-    def neighbors_for_index_with_weights(self, index):
-        distance_tuples = []
-        for edge in self.edges_for_index(index):
-            distance_tuples.append((self.vertex_at(edge.v), edge.weight))
-
-        return distance_tuples
+    def __eq__(self, other):
+        return self.distance == other.distance
 
 
-    def __str__(self):
-        desc = ""
-        for i in range(self.vertex_count):
-            desc += f"{self.vertex_at(i)} -> {self.neighbors_for_index_with_weights(i)}\n"
-        return desc
+def dijkstra(wg, root):
+    first = wg.index_of(root)
+    distances = [None] * wg.vertex_count
+    distances[first] = 0
+    path_dict = {}
+    pq = []
+    heappush(pq,DijkstraNode(first, 0))
 
+    while pq:
+        u = heappop(pq).vertex
+        dist_u = distances[u]
 
-def print_weighted_path(wg, wp):
-    for edge in wp:
-        print(f"{wg.vertex_at(edge.u)} {edge.weight} > {wg.vertex_at(edge.v)}")
-    print(f"Total Weight: {total_weight(wp)}")
+        for we in wg.edges_for_index(u):
+            dist_v = distances[we.v]
 
+            if dist_v is None or dist_v > we.weight + dist_u:
+                distances[we.v] = we.weight + dist_u
+                path_dict[we.v] = we
+                heappush(pq, DijkstraNode(we.v, we.weight + dist_u))
+                
+    return distances, path_dict
 
-def total_weight(wp):
-    return sum([e.weight for e in wp])
+def distance_array_to_vertex_dict(wg, distances):
+    distance_dict = {}
+    for i in range(len(distances)):
+        distance_dict[wg.vertex_at(i)] = distances[i]
+
+    return distance_dict
+
+def path_dict_to_path(start, end, path_dict):
+    if len(path_dict) == 0:
+        return []
+
+    edge_path = []
+    e = path_dict[end]
+    edge_path.append(e)
+    while e.u != start:
+        e = path_dict[e.u]
+        edge_path.append(e)
+
+    return list(reversed(edge_path))
+
 
 if __name__ == "__main__":
     city_graph = WeightedGraph(["Seattle", "San Francisco", "Los Angeles", 
@@ -87,4 +90,15 @@ if __name__ == "__main__":
     city_graph.add_edge_by_vertices("New York", "Philadelphia", 81)
     city_graph.add_edge_by_vertices("Philadelphia", "Washington", 123)
 
-    print(city_graph)
+    distances, path_dict = dijkstra(city_graph, "Los Angeles")
+    name_distance = distance_array_to_vertex_dict(city_graph, distances)
+    print("Distances from Los Angeles:")
+    
+    for key, value in name_distance.items():
+        print(f"{key} : {value}")
+    print("")
+
+
+    print("Shortest path from Los Angeles to Boston:")
+    path = path_dict_to_path(city_graph.index_of("Los Angeles"), city_graph.index_of("Boston"), path_dict)
+    print_weighted_path(city_graph, path)
