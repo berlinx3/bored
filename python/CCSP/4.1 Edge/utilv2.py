@@ -16,10 +16,6 @@ class WeightedEdge(Edge):
 
 
 class WeightedGraph(Graph):
-    def __init__(self, vertices):
-        self._vertices = vertices
-        self._edges = [[] for _ in vertices]
-            
             
     def add_edge_by_indices(self, u, v, weight):
         edge = WeightedEdge(u, v, weight)
