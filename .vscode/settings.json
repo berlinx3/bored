@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "C:\\ProgramData\\Anaconda3\\envs\\platest\\python.exe"
+    "python.pythonPath": "C:\\ProgramData\\Anaconda3\\envs\\platest\\python.exe",
+    "python.terminal.executeInFileDir": true
 }
