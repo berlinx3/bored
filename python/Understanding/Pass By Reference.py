@@ -1,5 +1,7 @@
 
-
+"""
+Primitive types are all immutable
+"""
 print("Scalar Test")
 print("===============")
 a = 1
@@ -172,3 +174,6 @@ def change(x):
 
 change(a)
 print("Value after change:\t", a.x)
+
+
+
