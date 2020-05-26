@@ -68,8 +68,12 @@ subsequently we perform repeated functional call using evaluated f on our permut
 def compile_formula(statement):
     letters = "".join(set(re.findall(r'[A-Z]', statement)))
     params = ", ".join(letters)
+    firstletters = set(re.findall(r'\b([A-Z])[A-Z]', statement))
     tokens = map(compile_word, re.split(r'([A-Z]+)', statement))
     body = ''.join(tokens)
+    if firstletters:
+        zero_test = " and ".join([f'{fl} != 0'for fl in firstletters])
+        body = f'{zero_test} and {body}'
     f = f'lambda {params}: {body}'
     return eval(f), letters
 
@@ -80,8 +84,12 @@ def testrunFaster():
         print(example, " : " , answer)
 
 
+print("Faster")
+print("======")
 testrunFaster()
-print("=================")
+print("\n\n")
+print("Slower")
+print("======")
 testrun()
 # cProfile.run('testrun()')
 
